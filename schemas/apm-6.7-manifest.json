@@ -4,6 +4,12 @@
   "description": "Contains references to objects we care about",
   "allOf": [
     { "$ref": "transactions/v1_transaction.json"  },
-    { "$ref": "transactions/v2_transaction.json"  }
+    { "$ref": "transactions/v2_transaction.json"  },
+    { "$ref": "spans/v1_span.json"  },
+    { "$ref": "spans/v2_span.json"  },
+    { "$ref": "metricsets/v1_metricset.json"  },
+    { "$ref": "metricsets/v2_metricset.json"  },
+    { "$ref": "errors/v1_error.json"  },
+    { "$ref": "errors/v2_error.json"  }
   ]
 }

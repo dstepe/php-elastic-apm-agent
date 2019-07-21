@@ -3,6 +3,9 @@
   "type": "object",
   "description": "Contains references to objects we care about",
   "allOf": [
-    { "$ref": "transactions/transaction.json"  }
+    { "$ref": "transactions/transaction.json" },
+    { "$ref": "spans/span.json" },
+    { "$ref": "metricsets/metricset.json" },
+    { "$ref": "errors/error.json" }
   ]
 }
