@@ -1,5 +1,7 @@
 <?php
 
+use Swaggest\PhpCodeBuilder\PhpCode;
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $apmVersion = '6.7';
@@ -56,13 +58,25 @@ $builder->classCreatedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCa
 
         $class->setDescription(trim($desc));
 
-        $class->setNamespace($appNs);
+        $class->setNamespace(getNameSpaceForPath($path, $appNs));
+
         if ('#' === $path) {
-            $class->setName('User'); // Class name for root schema
-        } elseif (strpos($path, '#/definitions/') === 0) {
+            return;
+        }
+
+        if (strpos($path, '#/definitions/') === 0) {
             $class->setName(\Swaggest\PhpCodeBuilder\PhpCode::makePhpClassName(
                 substr($path, strlen('#/definitions/'))));
+        } else {
+            $name = preg_replace('/\.json.*/', '', $path);
+            $name = preg_replace('/.*\//', '', $name);
+
+            $class->setName(\Swaggest\PhpCodeBuilder\PhpCode::makePhpClassName($name));
         }
+
+        $className = $class->getName();
+        $namespace = $class->getNamespace();
+
         $app->addClass($class);
     }
 );
@@ -70,3 +84,16 @@ $builder->classCreatedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCa
 $builder->getType($swaggerSchema);
 $app->clearOldFiles($appPath);
 $app->store($appPath);
+
+function getNameSpaceForPath(string $path, string $namespaceRoot): string
+{
+    $path = preg_replace('/\.\.\//', '', $path);
+    $name = rtrim(preg_replace('/\w+\.json.*/', '', $path), '/');
+    $parts = explode('/', $name);
+
+    if (empty($name)) {
+        return $namespaceRoot;
+    }
+
+    return $namespaceRoot . PhpCode::makePhpNamespaceName($parts);
+}
