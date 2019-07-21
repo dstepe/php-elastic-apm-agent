@@ -1,0 +1,9 @@
+{
+  "$id": "apm-6.7-manifest.json",
+  "type": "object",
+  "description": "Contains references to objects we care about",
+  "allOf": [
+    { "$ref": "transactions/v1_transaction.json"  },
+    { "$ref": "transactions/v2_transaction.json"  }
+  ]
+}

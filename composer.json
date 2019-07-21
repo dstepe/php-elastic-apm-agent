@@ -1,0 +1,27 @@
+{
+  "name": "dstepe/php-elastic-apm-agent",
+  "description": "Agent for the Elastic APM service implemented in PHP",
+  "minimum-stability": "dev",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Dirk Tepe",
+      "email": "dstepe@gmail.com"
+    }
+  ],
+  "require": {
+    "swaggest/json-schema": "v0.12.11",
+    "swaggest/php-code-builder": "v0.2.6",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "ApmAgent\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  }
+}
