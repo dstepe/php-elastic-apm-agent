@@ -4,7 +4,7 @@ use Swaggest\PhpCodeBuilder\PhpCode;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$apmVersion = '6.7';
+$apmVersion = '7.6';
 $versionNamespace = str_replace('.', '_', $apmVersion);
 
 $schemaDir = realpath(__DIR__ . '/../schemas/apm-' . $apmVersion . '/docs/spec');
@@ -42,6 +42,7 @@ $app->setNamespaceRoot($appNs, '.');
 $builder = new \Swaggest\PhpCodeBuilder\JsonSchema\PhpBuilder();
 $builder->buildSetters = true;
 $builder->makeEnumConstants = true;
+$builder->minimizeRefs = true;
 
 $builder->classCreatedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCallback(
     function (\Swaggest\PhpCodeBuilder\PhpClass $class, $path, $schema) use ($app, $appNs) {
@@ -58,24 +59,35 @@ $builder->classCreatedHook = new \Swaggest\PhpCodeBuilder\JsonSchema\ClassHookCa
 
         $class->setDescription(trim($desc));
 
-        $class->setNamespace(getNameSpaceForPath($path, $appNs));
-
+        $class->setNamespace($appNs);
         if ('#' === $path) {
-            return;
-        }
-
-        if (strpos($path, '#/definitions/') === 0) {
+            $class->setName('User'); // Class name for root schema
+        } elseif (strpos($path, '#/definitions/') === 0) {
             $class->setName(\Swaggest\PhpCodeBuilder\PhpCode::makePhpClassName(
                 substr($path, strlen('#/definitions/'))));
-        } else {
-            $name = preg_replace('/\.json.*/', '', $path);
-            $name = preg_replace('/.*\//', '', $name);
-
-            $class->setName(\Swaggest\PhpCodeBuilder\PhpCode::makePhpClassName($name));
         }
 
-        $className = $class->getName();
-        $namespace = $class->getNamespace();
+//        $class->setNamespace(getNameSpaceForPath($path, $appNs));
+//
+//        if ('#' === $path) {
+//            return;
+//        }
+//
+//        if (strpos($path, '#/definitions/') === 0) {
+//            $class->setName(\Swaggest\PhpCodeBuilder\PhpCode::makePhpClassName(
+//                substr($path, strlen('#/definitions/'))));
+//        } else {
+//            // transactions/v1_transaction.json->transactions->items->span_count
+//            //  => SpanCount
+//            $name = preg_replace('/\.json/', '', $path);
+//            $name = preg_replace('/.*\//', '', $name);
+//            $name = array_reverse(explode('->', $name))[0];
+//
+//            $class->setName(\Swaggest\PhpCodeBuilder\PhpCode::makePhpClassName($name));
+//        }
+//
+//        $className = $class->getName();
+//        $namespace = $class->getNamespace();
 
         $app->addClass($class);
     }
@@ -87,13 +99,21 @@ $app->store($appPath);
 
 function getNameSpaceForPath(string $path, string $namespaceRoot): string
 {
-    $path = preg_replace('/\.\.\//', '', $path);
-    $name = rtrim(preg_replace('/\w+\.json.*/', '', $path), '/');
-    $parts = explode('/', $name);
+    // transactions/v1_transaction.json->transactions->items->span_count
+    //  => SpanCount
+    $name = preg_replace('/\.\.\//', '', $path);
+    $name = rtrim(preg_replace('/\w+\.json.*/', '', $name), '/');
 
     if (empty($name)) {
+        print "path $path ($namespaceRoot)\n";
         return $namespaceRoot;
     }
 
-    return $namespaceRoot . PhpCode::makePhpNamespaceName($parts);
+    $parts = explode('/', $name);
+
+    $namespace = PhpCode::makePhpNamespaceName($parts);
+
+    print "path $path ($namespace)\n";
+
+    return $namespaceRoot . $namespace;
 }
